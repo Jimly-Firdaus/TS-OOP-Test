@@ -38,30 +38,37 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var time_sleep_1 = require("./lib/time_sleep");
 var readline_1 = require("./lib/readline");
-var string_modifier_1 = require("./lib/string_modifier");
-var name = "Hard Coded";
-var sayHello = function (name) { return __awaiter(void 0, void 0, void 0, function () {
+var user_1 = require("./lib/user");
+var main = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var username, password, creditCardNumber, user;
     return __generator(this, function (_a) {
-        console.log("Init Program");
-        readline_1.stdin.question("Enter name: ", function (input) { return __awaiter(void 0, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        name = input;
-                        readline_1.stdin.close();
-                        console.log("Wait 3 sec\n");
-                        return [4 /*yield*/, (0, time_sleep_1.sleep)(1000)];
-                    case 1:
-                        _a.sent();
-                        name = (0, string_modifier_1.toCapitallize)(name);
-                        console.log("Hello " + name);
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-        return [2 /*return*/];
+        switch (_a.label) {
+            case 0:
+                console.log("\n");
+                return [4 /*yield*/, (0, readline_1.inputData)("username")];
+            case 1:
+                username = _a.sent();
+                return [4 /*yield*/, (0, readline_1.inputData)("password")];
+            case 2:
+                password = _a.sent();
+                return [4 /*yield*/, (0, readline_1.inputData)("credit card number")];
+            case 3:
+                creditCardNumber = _a.sent();
+                console.log("Saving...");
+                user = new user_1.User(username, password, creditCardNumber, 13521102);
+                (0, time_sleep_1.sleep)(500).then(function () {
+                    console.log("Saved username: ".concat(username));
+                    console.log("Saved password: ".concat(password));
+                    console.log("Saved credit card number: ".concat(user.getCreditCardNumber()));
+                    console.log("Balance: ".concat(user.getBalance()));
+                    readline_1.stdin.close();
+                });
+                return [2 /*return*/];
+        }
     });
 }); };
-sayHello(name).then(function () {
-    console.log("After promise. Name: " + name);
+main().then(function () {
+    (0, time_sleep_1.sleep)(3000).then(function () {
+        console.log("Should be prompt after 3s main resolved");
+    });
 });
