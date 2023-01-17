@@ -1,82 +1,73 @@
 import { stdin } from "./readline";
 import { sleep } from "./time_sleep";
 import { toCapitallize } from "./string_modifier";
+import { paymentObject } from "../typings";
 
-class User {
-    // user data
-    private _username: string = undefined;
-    private _password: number | string = undefined;
-    private readonly _id: number;
-
-    // Constructor
-    constructor(username: string, password: number | string, id: number) {
-        this.setUsername(username);
-        this.setPassword(username);
-        this._id = id;
-    }
+abstract class baseUser {
+    // Class props
+    protected _username: string = undefined;
+    protected _password: string | number = undefined;
+    protected _id: number = undefined;
+    protected _creditCardNumber: string | number = undefined;
 
     // Class messages
     /**
+     * @param user_data changed user field
      * @returns error message for set / unset value
      * */
-    private _errMsg (
+    protected _errChangesMsg (
         user_data: string,
-        method: string,
-        type: string = "set" // err by set or unset
     ) {
-        if (type === "set") {
-            return `${toCapitallize(user_data)} is already set. Use ${method} method to change ${user_data}!`;
-        } else {
-            return `${toCapitallize(user_data)} is not defined yet!`;
-        }
+        return `${toCapitallize(user_data)} cannot be same as previous!`;
     }
     /**
+     * @param user_data changed user field
      * @returns success message for changes on value
      * */
-    private _succMsg (
+    protected _succChangesMsg (
         user_data: string
     ) {
-        return `Succesfully changes ${user_data.toLowerCase()}!`;
+        return `Successfully changes ${user_data.toLowerCase()}!`;
     }
-    // private _confirmPasswordChangesErr = "Confirmed password isn't same!";
 
     // Getters and Setters
     // Username
+    /**
+     * @returns current username user object
+     * */
     public getUsername () {
         return this._username;
     }
-    private setUsername (username: string) {
-        if (this._username !== undefined) {
-            console.log(this._errMsg("username", "changeUsername"));
-        }
-        else {
-            this._username = username;
-        }
+    protected setUsername (username: string) {
+        this._username = username;
     }
+    /**
+     * @description change current username of user object
+     * @param newUsername new username
+     * */
     public changeUsername (newUsername: string) {
-        if (this._username !== undefined) {
-            this._username = newUsername;
-            console.log(this._succMsg("username"));
+        if (this._username === newUsername) {
+            console.log(this._errChangesMsg("username"));
         }
         else {
-            console.log(this._errMsg("username", "setUsername", "unset"));
+            this._username = newUsername;
+            console.log(this._succChangesMsg("username"));
         }
     }
     // Password
-    private getPassword () {
+    protected getPassword () {
         return this._password;
     }
-    private setPassword (password: number | string) {
-        if (this._password !== undefined) {
-            console.log(this._errMsg("password", "changePassword", "set"));
-        }
-        else {
-            this._password = password;
-        }
+    protected setPassword (password: number | string) {
+        this._password = password;
     }
+    /**
+     * @description change current password of user object
+     * @param newPassword new password
+     * */
     public changePassword (newPassword: number | string) {
         if (this.getPassword() === newPassword) {
-            console.log("Current password is same as old password!");
+            console.log(this._errChangesMsg("new password"));
         } else {
             stdin.question(
                 "Confirm Password: ",
@@ -85,12 +76,76 @@ class User {
                     await sleep(1000);
                     if (newPassword === input) {
                         this._password = newPassword;
-                        console.log(this._succMsg("password"))
+                        console.log(this._succChangesMsg("password"))
                     } else {
                         console.log("Confirmed password is not same!");
                     }
                 }
             )
+        }
+    }
+    // Credit Card Number
+    protected setCreditCardNumber (creditCardNumber: string | number) {
+        this._creditCardNumber = creditCardNumber;
+    }
+    /**
+     * @returns credit card number of current user object
+     * */
+    public getCreditCardNumber () {
+        return this._creditCardNumber;
+    }
+
+}
+
+export class User extends baseUser{
+    balance: number;
+    paymentBasket: paymentObject[] = [];
+    // Constructor
+    constructor(username: string, password: number | string, creditCardNumber: string | number, id: number) {
+        super();
+        this.setUsername(username);
+        this.setPassword(password);
+        this.setCreditCardNumber(creditCardNumber)
+        this._id = id; // auto-generated by default
+        this.retrieveCardData();
+    }
+
+    public getBalance () {
+        return this.balance;
+    }
+    private retrieveCardData () {
+        if (this._creditCardNumber !== undefined) {
+            // dummy balance
+            this.balance = 10000000
+        }
+    }
+
+    public getBasketItem () {
+        console.log(`${toCapitallize(this._username)}'s basket:`);
+        console.log("No.----Item Id----Cost")
+        for (let i = 0; i < this.paymentBasket.length; i++) {
+            console.log(`|${i}|\t|${this.paymentBasket[i].item_id}|\t|${this.paymentBasket[i].cost}|`);
+        }
+    }
+
+    public makePayment (cost: number, id: number) {
+        // per unique item have different object
+        let item: paymentObject = {
+            username: this._username,
+            // unique item id to mark transaction
+            item_id: id,
+            cost: cost,
+            // false status === uncheckPayment, status set to true when the item is checked out
+            status: false,
+        };
+        this.paymentBasket.push(item);
+        console.log("Item is stored on your basket. Please check it!");
+    }
+
+    public checkoutPayment() {
+        console.log(`Balance: ${this.balance}`);
+        if (this.paymentBasket.length !== 0) {
+            console.log("Developing");
         }
     }
 
