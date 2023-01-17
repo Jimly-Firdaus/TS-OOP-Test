@@ -17,9 +17,14 @@
     "include": [
         "src",
         "src/**/*.ts",
+        "src/typings"
     ],
     "exclude": [
         "node_modules",
         "dist",
     ],
+    "typeRoots": [
+        "src/typings",
+        "node_modules/@types",
+    ]
 }
