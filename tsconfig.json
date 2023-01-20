@@ -4,6 +4,7 @@
         "module": "CommonJS",
         "types": ["node"],
         "removeComments": false,
+        "experimentalDecorators": true,
         "sourceMap": true,
         "moduleDetection": "force",
         "moduleResolution": "node",

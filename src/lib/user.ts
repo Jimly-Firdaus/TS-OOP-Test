@@ -1,11 +1,16 @@
 import { stdin, inputData } from "./readline";
 import { sleep } from "./time_sleep";
 import { toCapitallize } from "./string_modifier";
-import { Account, paymentObject } from "../typings";
+import {
+    account,
+    customer,
+    paymentObject
+} from "../typings";
+import { Override } from "./constant/decorators";
 
 // solved TS2420:
 // @ts-ignore
-abstract class baseUser implements Account{
+abstract class baseUser implements account{
     // Class props
     protected _username: string = undefined;
     protected _password: string | number = undefined;
@@ -170,6 +175,18 @@ export class User extends baseUser{
     }
 }
 
+export class Merchant extends User {
+
+    customers: customer
+    // solved TS1241
+    // @ts-ignore
+    @Override()
+    public paymentBasket () {
+
+    }
+
+
+}
 
 
 

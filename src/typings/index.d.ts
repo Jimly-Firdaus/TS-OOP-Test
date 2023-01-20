@@ -1,5 +1,5 @@
 
-export declare interface Account {
+export declare interface account {
     _username: string;
     _password: string | number;
     _id: number;
@@ -40,4 +40,12 @@ export declare interface paymentObject {
     item_id?: string | number;
     cost: number;
     status?: boolean;
+}
+
+export declare interface customer {
+    username: string;
+    item_id: string[];
+    total_cost: number;
+    status: string;
+    appeal?: boolean;
 }
