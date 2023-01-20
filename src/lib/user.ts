@@ -1,9 +1,11 @@
-import { stdin } from "./readline";
+import { stdin, inputData } from "./readline";
 import { sleep } from "./time_sleep";
 import { toCapitallize } from "./string_modifier";
-import { paymentObject } from "../typings";
+import { Account, paymentObject } from "../typings";
 
-abstract class baseUser {
+// solved TS2420:
+// @ts-ignore
+abstract class baseUser implements Account{
     // Class props
     protected _username: string = undefined;
     protected _password: string | number = undefined;
@@ -32,19 +34,14 @@ abstract class baseUser {
 
     // Getters and Setters
     // Username
-    /**
-     * @returns current username user object
-     * */
+
     public getUsername () {
         return this._username;
     }
     protected setUsername (username: string) {
         this._username = username;
     }
-    /**
-     * @description change current username of user object
-     * @param newUsername new username
-     * */
+
     public changeUsername (newUsername: string) {
         if (this._username === newUsername) {
             console.log(this._errChangesMsg("username"));
@@ -61,10 +58,7 @@ abstract class baseUser {
     protected setPassword (password: number | string) {
         this._password = password;
     }
-    /**
-     * @description change current password of user object
-     * @param newPassword new password
-     * */
+
     public changePassword (newPassword: number | string) {
         if (this.getPassword() === newPassword) {
             console.log(this._errChangesMsg("new password"));
@@ -72,6 +66,7 @@ abstract class baseUser {
             stdin.question(
                 "Confirm Password: ",
                 async (input: string | number) => {
+                    // TODO : Refactor this code using the new input function
                     console.log("Processing");
                     await sleep(1000);
                     if (newPassword === input) {
@@ -88,9 +83,7 @@ abstract class baseUser {
     protected setCreditCardNumber (creditCardNumber: string | number) {
         this._creditCardNumber = creditCardNumber;
     }
-    /**
-     * @returns credit card number of current user object
-     * */
+
     public getCreditCardNumber () {
         return this._creditCardNumber;
     }
@@ -142,11 +135,41 @@ export class User extends baseUser{
         console.log("Item is stored on your basket. Please check it!");
     }
 
-    public checkoutPayment() {
+    public async checkoutPayment() {
         console.log(`Balance: ${this.balance}`);
+        let exitMenu: boolean = false;
         if (this.paymentBasket.length !== 0) {
-            console.log("Developing");
+            const maxChoice: number = this.paymentBasket.length;
+            let userChoice: number =  parseInt(await inputData("choice"), 10);
+            let endChoice: boolean = false;
+            while (!endChoice) {
+                if (userChoice > maxChoice) {
+                    console.log("Invalid input!");
+                    userChoice = parseInt(await inputData("choice"), 10);
+                } else {
+                    endChoice = true;
+                    if (userChoice === 0) {
+                        exitMenu = true;
+                    }
+                    else {
+                        // Filter out the chosen index
+                        this.paymentBasket = this.paymentBasket.filter((ele, index) => {
+                            return index !== userChoice - 1;
+                        })
+                        console.log("Current Basket: ");
+                        this.getBasketItem();
+                    }
+                }
+            }
         }
+        else {
+            console.log("Nothing in basket");
+            exitMenu = true;
+        }
+        return exitMenu;
     }
-
 }
+
+
+
+
