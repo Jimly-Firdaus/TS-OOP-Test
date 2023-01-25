@@ -4,6 +4,7 @@ export declare interface account {
     _password: string | number;
     _id: number;
     _creditCardNumber: string | number;
+    balance: number;
 
     /**
      * @returns current username user object
@@ -33,6 +34,14 @@ export declare interface account {
      * @returns credit card number of current user object
      * */
     getCreditCardNumber(): string | number;
+    /**
+     * @returns set up credit card balance
+     * */
+    retrieveCardData(): void;
+    /**
+     * @returns top up user balance
+     * */
+    topUpBalance(): void;
 }
 
 export declare interface paymentObject {
