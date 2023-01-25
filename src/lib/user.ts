@@ -16,6 +16,7 @@ abstract class baseUser implements account{
     protected _password: string | number = undefined;
     protected _id: number = undefined;
     protected _creditCardNumber: string | number = undefined;
+    protected balance: number = 0;
 
     // Class messages
     /**
@@ -93,10 +94,20 @@ abstract class baseUser implements account{
         return this._creditCardNumber;
     }
 
+    protected retrieveCardData () {
+        if (this._creditCardNumber !== undefined) {
+            // dummy balance
+            this.balance = 10000000
+        }
+    }
+
+    protected topUpBalance (topUpValue: number = 50000) {
+        this.balance = this.balance + topUpValue;
+    }
+
 }
 
 export class User extends baseUser{
-    balance: number;
     paymentBasket: paymentObject[] = [];
     // Constructor
     constructor(username: string, password: number | string, creditCardNumber: string | number, id: number) {
@@ -111,12 +122,7 @@ export class User extends baseUser{
     public getBalance () {
         return this.balance;
     }
-    private retrieveCardData () {
-        if (this._creditCardNumber !== undefined) {
-            // dummy balance
-            this.balance = 10000000
-        }
-    }
+
 
     public getBasketItem () {
         console.log(`${toCapitallize(this._username)}'s basket:`);
@@ -177,16 +183,43 @@ export class User extends baseUser{
 
 export class Merchant extends User {
 
-    customers: customer
-    // solved TS1241
-    // @ts-ignore
-    @Override()
-    public paymentBasket () {
-
+    // List of this merchant customer
+    customers: customer[] = [];
+    // Getters and setters
+    public addCustomer(customerData: customer) {
+        this.customers.push(customerData);
+    }
+    /**
+     * @param username customer username
+     * @returns removed given customer username from merchant basket
+     * */
+    private removeCustomer(username: string) {
+        let i = 0;
+        let usernameFound = false;
+        while (i < this.customers.length && !usernameFound) {
+            // filter out the chosen username
+          if (this.customers[i].username === username) {
+              this.customers = this.customers.filter(
+                  (ele, index) => {
+                      return ele.username !== username;
+                  }
+              )
+          }
+          i++;
+        }
     }
 
 
+    /**
+     * Shows list of customer, then throws input stream to confirm selected customer payment
+     * */
+    // TODO: complete confirmPayment by match the username then remove it from merchant basket
+    public async confirmPayment() {
+        const username = await inputData("username");
+
+
+    }
+    // TODO: getCustomerList
 }
 
-
-
+// TODO: global database to store all transaction information
