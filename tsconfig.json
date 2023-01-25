@@ -5,11 +5,12 @@
         "types": ["node"],
         "removeComments": false,
         "experimentalDecorators": true,
+        "noImplicitOverride": true,
         "sourceMap": true,
         "moduleDetection": "force",
         "moduleResolution": "node",
         "outDir": "./dist",
-        "baseUrl": ".",
+        "baseUrl": "."
 //        "paths": {
 //            "@/*": ["src/*"],
 //            "@/lib/*": ["src/lib/*"],
