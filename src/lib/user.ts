@@ -221,5 +221,4 @@ export class Merchant extends User {
     }
     // TODO: getCustomerList
 }
-
 // TODO: global database to store all transaction information
