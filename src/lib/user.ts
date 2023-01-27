@@ -17,14 +17,11 @@ abstract class baseUser implements account{
     protected _username: string = undefined;
     protected _password: string | number = undefined;
     protected _id: number = undefined;
-    protected _creditCardNumber: string | number = undefined;
     protected balance: number = 0;
-    // New user merchant role defaults to false
     // Status set to paid
     protected isMerchant: boolean = false;
     protected status: string = "paid";
 
-    // Class messages
     /**
      * @param user_data changed user field
      * @returns error message for set / unset value
@@ -44,14 +41,9 @@ abstract class baseUser implements account{
         return `Successfully changes ${user_data.toLowerCase()}!`;
     }
 
-    // Getters and Setters
-    // Username
-
+    // Getters
     public getUsername () {
         return this._username;
-    }
-    protected setUsername (username: string) {
-        this._username = username;
     }
 
     public changeUsername (newUsername: string) {
@@ -63,12 +55,9 @@ abstract class baseUser implements account{
             console.log(this._succChangesMsg("username"));
         }
     }
-    // Password
+
     protected getPassword () {
         return this._password;
-    }
-    protected setPassword (password: number | string) {
-        this._password = password;
     }
 
     public changePassword (newPassword: number | string) {
@@ -91,53 +80,57 @@ abstract class baseUser implements account{
             )
         }
     }
-    // Credit Card Number
-    protected setCreditCardNumber (creditCardNumber: string | number) {
-        this._creditCardNumber = creditCardNumber;
-    }
 
-    public getCreditCardNumber () {
-        return this._creditCardNumber;
-    }
-
-    protected retrieveCardData () {
-        if (this._creditCardNumber !== undefined) {
-            // dummy balance
-            this.balance = 10000000
-        }
-    }
-
-    protected topUpBalance (topUpValue: number = 50000) {
+    /**
+     * Increase the current user balance
+     * @param topUpValue top up amount, defaults to 50000
+     * */
+    public topUpBalance (topUpValue: number = 50000) {
         this.balance = this.balance + topUpValue;
+        console.log(`Top up ${topUpValue}. Current balance: ${this.balance}`);
     }
 
 
 }
 
 export class User extends baseUser{
-    paymentBasket: paymentObject[] = [];
+    private paymentBasket: paymentObject[] = [];
     // Constructor
-    constructor(username: string, password: number | string, creditCardNumber: string | number, id: number) {
+    constructor(username: string, password: number | string, id: number) {
         super();
         this._username = username;
         this._password = password;
-        this._creditCardNumber = creditCardNumber;
         this._id = id;
     }
 
+    // Getters
     public getBalance () {
         return this.balance;
     }
 
+    public getBasket () {
+        return this.paymentBasket;
+    }
 
+    /**
+     * Show all list of item inside current user basket
+     * */
     public getBasketItem () {
         console.log(`${toCapitallize(this._username)}'s basket:`);
         console.log("No.----Item Id----Cost");
         for (let i = 0; i < this.paymentBasket.length; i++) {
-            console.log(`|${i}|\t|${this.paymentBasket[i].item_id}|\t|${this.paymentBasket[i].cost}|`);
+            console.log(`|${i + 1}|\t|${this.paymentBasket[i].item_id}|\t|${this.paymentBasket[i].cost}|`);
+        }
+        if (this.paymentBasket.length === 0) {
+            console.log("Empty here..");
         }
     }
 
+    /**
+     * Takes in item cost & id and push it to basket
+     * @param cost item cost
+     * @param id item id
+     * */
     public makePayment (cost: number, id: number) {
         // per unique item have different object
         let item: paymentObject = {
@@ -146,15 +139,19 @@ export class User extends baseUser{
             item_id: id,
             cost: cost,
             // false status === uncheckPayment, status set to true when the item is checked out
-            status: false,
+            status: "unpaid",
         };
         this.paymentBasket.push(item);
         console.log("Item is stored on your basket. Please check it!");
     }
 
+    /**
+     * Prompt input to removed selected items inside basket if sufficient
+     * */
     public async checkoutPayment() {
         console.log(`Balance: ${this.balance}`);
-        let exitMenu: boolean = false;
+        let choosenItem: number;
+        let success: boolean = false;
         if (this.paymentBasket.length !== 0) {
             const maxChoice: number = this.paymentBasket.length;
             let userChoice: number =  parseInt(await inputData("choice"), 10);
@@ -165,15 +162,26 @@ export class User extends baseUser{
                     userChoice = parseInt(await inputData("choice"), 10);
                 } else {
                     endChoice = true;
-                    if (userChoice === 0) {
-                        exitMenu = true;
-                    }
-                    else {
-                        // Filter out the chosen index
-                        this.paymentBasket = this.paymentBasket.filter((ele, index) => {
+                    // Filter out the chosen index
+                    this.paymentBasket = this.paymentBasket.filter((ele, index) => {
+                        if (index === userChoice - 1) {
+                            if (ele.cost > this.balance) {
+                                console.log("Not enough balance!");
+                                choosenItem = -1;
+                            }
+                            else {
+                                success = true;
+                                choosenItem === ele.item_id;
+                                this.balance = this.balance - ele.cost;
+                                return index !== userChoice - 1;
+
+                            }
+                        } else {
                             return index !== userChoice - 1;
-                        })
-                        console.log("Current Basket: ");
+                        }
+                    })
+                    if (success) {
+                        console.log("Successfully checked out an item! Current Basket: ");
                         this.getBasketItem();
                     }
                 }
@@ -181,52 +189,66 @@ export class User extends baseUser{
         }
         else {
             console.log("Nothing in basket");
-            exitMenu = true;
+            choosenItem = -1;
         }
-        return exitMenu;
-    }
-
-    public enableMerchantMode () {
-        this.isMerchant = true;
+        return choosenItem;
     }
 }
 
-export class Merchant extends User {
+export class Merchant extends baseUser {
 
     // List of this merchant customer
     customers: customer[] = [];
-    // Getters and setters
-    public addCustomer(customerData: customer) {
-        this.customers.push(customerData);
-    }
-    /**
-     * @param username customer username
-     * @returns removed given customer username from merchant basket
-     * */
-    private removeCustomer(username: string) {
-        let i = 0;
-        let usernameFound = false;
-        while (i < this.customers.length && !usernameFound) {
-            // filter out the chosen username
-          if (this.customers[i].username === username) {
-              this.customers = this.customers.filter(
-                  (ele) => {
-                      return ele.username !== username;
-                  }
-              )
-          }
-          i++;
-        }
+    constructor(username: string, password: string | number) {
+        super();
+        this._username = username;
+        this._password = password;
     }
 
     /**
-     * Shows list of customer, then throws input stream to confirm selected customer payment
+     * @param customerData customer data
+     * */
+    public addCustomer(customerData: customer) {
+        this.customers.push(customerData);
+    }
+
+    /**
+     * @param username customer username
+     * @param item_id item id
+     * @returns removed given customer username from merchant basket
+     * */
+    private removeCustomer(username: string, item_id: string) {
+        this.customers = this.customers.filter(
+            (ele) => {
+                return ele.item_id !== item_id && ele.username !== username;
+            }
+        )
+    }
+
+    /**
+     * Mark item status on customers list based on users checked out items
+     * @param username customer username
+     * @param item_id item id
+     * */
+    public markPayment (username: string, item_id: string | number) {
+        // console.log("----------->" + this.customers.length);
+        this.customers.forEach((customer) => {
+            if (customer.username === username && customer.item_id === item_id) {
+                customer.status = "paid";
+            }
+        })
+    }
+
+    /**
+     * Prompt input for username & item id to match the customers data
+     * @returns confirmed boolean value
      * */
     public async confirmPayment() {
         const username: string = await inputData("username");
+        const item_id: string = await inputData("item id")
         const length: number = this.customers.length;
         let confirmed: boolean = false;
-        this.removeCustomer(username);
+        this.removeCustomer(username, item_id);
         if (this.customers.length === length) {
             console.log(`Unable to find ${username} (does not exist).`);
         }
@@ -237,6 +259,9 @@ export class Merchant extends User {
         return confirmed;
     }
 
+    /**
+     * Shows the content of customers list
+     * */
     public getCustomerList () {
         console.log(`${toCapitallize(this._username)}'s customers:`);
         if (this.customers.length > 0){
@@ -247,24 +272,36 @@ export class Merchant extends User {
             })
         }
         else {
-            console.log("No customers.");
+            console.log("No customer.");
         }
     }
 
 }
-// TODO: global database to store all transaction information
 
 // solved TS2420:
 // @ts-ignore
 export class Auth implements authentication {
-    public database: credential[] = [];
+    private database: credential[] = [
+        {
+            username: "admin",
+            password: "test12345",
+            balance: 0,
+            loggedIn: true,
+            isMerchant: true,
+        }
+    ];
     public currentUserIndex: number = -1;
     private username: string;
     private password: number | string;
 
+    // Getters
+    public getData () {
+        return this.database;
+    }
 
     /**
-     * @returns true if merchant, false if customer
+     * Prompt an login form
+     * @param asMerchant (not available)
      * */
     public async login (asMerchant: boolean = false) {
         const username = await inputData("username");
@@ -273,7 +310,7 @@ export class Auth implements authentication {
         let foundCredential = false;
         let isMerchant = asMerchant;
         this.database.forEach((credential, index) => {
-            if (credential.username === username && credential.password === password && credential.isMerchant === isMerchant) {
+            if (credential.username === username && credential.password === password) {
                 foundCredential = true;
                 this.currentUserIndex = index;
             }
@@ -283,12 +320,13 @@ export class Auth implements authentication {
         }
     }
 
-
+    /**
+     * Prompt a sign-up  form
+     * */
     public async signUp () {
         let currentUser: credential = {
             username: await inputData("username"),
             password: await inputData("password"),
-            creditCardNumber: await inputData("credit card number"),
             balance: 0,
             loggedIn: false,
             isMerchant: false
@@ -296,9 +334,4 @@ export class Auth implements authentication {
         this.database.push(currentUser);
         console.log(`Account created! Please login!`);
     }
-
-
-
 }
-
-
