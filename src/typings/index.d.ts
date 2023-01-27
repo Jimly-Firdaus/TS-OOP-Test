@@ -3,7 +3,6 @@ export declare interface account {
     _username: string;
     _password: string | number;
     _id: number;
-    _creditCardNumber: string | number;
     balance: number;
     isMerchant: boolean;
     status: string;
@@ -12,16 +11,16 @@ export declare interface account {
      * */
     getUsername(): string;
 
-    setUsername(username: string): void;
-
     /**
      * @description change current username of user object
      * @param newUsername new username
      * */
     changeUsername(newUsername: string): void;
 
+    /**
+     * @returns current user password
+     * */
     getPassword(): string | number;
-    setPassword(password: number | string): void;
 
     /**
      * @description change current password of user object
@@ -29,16 +28,6 @@ export declare interface account {
      * */
     changePassword(newPassword: number | string): void;
 
-    setCreditCardNumber(creditCardNumber: string | number): void;
-
-    /**
-     * @returns credit card number of current user object
-     * */
-    getCreditCardNumber(): string | number;
-    /**
-     * @returns set up credit card balance
-     * */
-    retrieveCardData(): void;
     /**
      * @returns top up user balance
      * */
@@ -47,28 +36,26 @@ export declare interface account {
 
 export declare interface paymentObject {
     username: string;
-    item_id?: string | number;
+    item_id: string | number;
     cost: number;
-    status?: boolean;
+    status?: string;
 }
 
 export declare interface customer {
     username: string;
-    item_id: string[];
+    item_id: string | number;
     total_cost: number;
     status: string; // paid or unpaid
     appeal?: boolean;
 }
 
 export declare interface authentication {
-
     database: credential[];
 }
 
 export declare interface credential {
     username: string;
     password: string | number;
-    creditCardNumber: string | number;
     balance: number;
     loggedIn?: boolean;
     isMerchant: boolean;
