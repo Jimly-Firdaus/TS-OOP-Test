@@ -17,4 +17,4 @@ tsc .\index.ts
 node .\index.js
 ```
 
-# This app is still in development
+# Development in process
